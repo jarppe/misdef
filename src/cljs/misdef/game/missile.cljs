@@ -37,7 +37,6 @@
       (update-in g [:objects] hit ts o)
       g)))
 
-
 (defmethod game/render-object :missile [{:keys [ctx ts]} {:keys [created angle len affiliation]}]
   (let [age   (- ts created)
         dist  (* missile-velocity age)

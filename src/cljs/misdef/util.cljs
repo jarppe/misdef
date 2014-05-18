@@ -12,3 +12,12 @@
   (.preventDefault e)
   (.stopPropagation e)
   e)
+
+(defn rgb->color [r g b]
+  (str "rgb(" r "," g "," b ")"))
+
+(defn rgba->color [r g b a]
+  (str "rgba(" r "," g "," b "," a ")"))
+
+(defn color-with-alpha [[r g b] a]
+  (str "rgba(" r "," g "," b "," a ")"))

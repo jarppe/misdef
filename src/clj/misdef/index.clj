@@ -21,7 +21,8 @@
                             :text-align        "center"
                             :display           "table-cell"
                             :vertical-align    "middle" }]
-                [:#c {:display "table-cell"}]
+                [:#c {:display "table-cell"
+                      :cursor "crosshair"}]
                 [:.hidden {:display "none !important"}])]]
          [:body
           [:div#loading "Loading..."]
