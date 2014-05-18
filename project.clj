@@ -11,7 +11,8 @@
                  [hiccup "1.0.5"]
                  [garden "1.1.6"]
                  [metosin/ring-http-response "0.4.0"]
-                 [ring-middleware-format "0.3.2"]]
+                 [ring-middleware-format "0.3.2"]
+                 [prismatic/dommy "0.1.2"]]
   :source-paths ["src/clj" "src/cljs"]
   :profiles {:dev {:dependencies [[midje "1.6.2"]]
                    :plugins [[lein-cljsbuild "1.0.3"]]}

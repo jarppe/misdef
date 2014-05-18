@@ -1,30 +1,15 @@
-(ns misdef.game
-  (:require-macros [misdef.core :refer [on-event]]))
-
-;;
-;; Game state:
-;;
-
-(defonce game (atom nil))
-
-;;
-;; Utils:
-;;
-
-(defn window-size []
-  [(.-innerWidth js/window) (.-innerHeight js/window)])
-
-(def pi2 (* Math/PI 2))
-
-(defn get-time []
-  (.getTime (js/Date.)))
+(ns misdef.game.run
+  (:require [dommy.core :as dommy]
+            [misdef.core :as core]
+            [misdef.util :as util])
+  (:require-macros [dommy.macros :refer [sel1]]))
 
 ;;
 ;; Game update:
 ;;
 
 (defn update-tick [{:keys [tick ts fps] :as g}]
-  (let [now     (get-time)
+  (let [now     (util/get-time)
         fps     (if (zero? (mod tick 10))
                   (Math/round (/ 1000.0 (- now ts)))
                   fps)]
@@ -60,9 +45,7 @@
     (aset "fillStyle" "rgba(32,255,32,0.4)")
     (.fillText (str "Missile Defence (" fps ")") (/ width 2) 2)))
 
-(defmulti render-object (fn [_ object] (:type object)))
-
-(defmethod render-object :missile [{ctx :ctx} {:keys [launch target]}]
+(defmethod core/render-object :missile [{ctx :ctx} {:keys [launch target]}]
   (doto ctx
     (aset "strokeStyle" "rgb(255,192,128)")
     (.beginPath)
@@ -73,10 +56,10 @@
 
 (defn render-objects [{objects :objects :as g}]
   (doseq [o objects]
-    (render-object g o)))
+    (core/render-object g o)))
 
 (defn render [{:keys [ctx] :as g}]
-  (let [[width height] (window-size)]
+  (let [[width height] (util/window-size)]
     (doto (assoc g :width  width
                    :height height)
       (clean-canvas)
@@ -88,29 +71,33 @@
 ;; Game life-cycle:
 ;;
 
+(defn click [e]
+  (let [x (.-clientX e)
+        y (.-clientY e)
+        [width height] (util/window-size)]
+    (swap! core/game update-in [:objects] conj {:type        :missile    
+                                                :created     (:ts @core/game)
+                                                :affiliation :friend
+                                                :launch      {:x (/ width 2) :y height}
+                                                :target      {:x x :y y}})))
+
+(defn keypress [e]
+  (swap! core/game assoc :objects []))
+
 (defn step []
-  (->> @game
+  (->> @core/game
        (update)
        (render)
-       (reset! game))
+       (reset! core/game))
   nil)
 
-(defn init [cb]
-  (let [canvas (.getElementById js/document "c")]
-    (reset! game {:canvas   canvas
-                  :ctx      (.getContext canvas "2d")
-                  :tick     0
-                  :ts       (get-time)
-                  :objects  []})
-    (on-event canvas "click"
-      (let [x (.-clientX e)
-            y (.-clientY e)
-            [width height] (window-size)]
-        (swap! game update-in [:objects] conj {:type        :missile    
-                                               :created     (:ts @game)
-                                               :affiliation :friend
-                                               :launch      {:x (/ width 2) :y height}
-                                               :target      {:x x :y y}})))
-    (on-event js/document "keypress"
-      (swap! game assoc :objects []))
-    (cb)))
+(defn init [ready]
+  (let [canvas (sel1 :#c)]
+    (reset! core/game {:canvas   canvas
+                       :ctx      (.getContext canvas "2d")
+                       :tick     0
+                       :ts       (util/get-time)
+                       :objects  []})
+    (dommy/listen! canvas :click (comp click util/prevent-default))
+    (dommy/listen! js/document :keypress (comp keypress util/prevent-default))
+    (ready)))

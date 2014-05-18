@@ -16,13 +16,14 @@
                                       :padding           "0px"
                                       :margin            "0px"}]
                 [:body {:display "table"}]
-                [:#c {:display "none"}]
                 [:#loading {:font-size         "48px"
                             :font-family       "sans-serif"
                             :text-align        "center"
                             :display           "table-cell"
-                            :vertical-align    "middle" }])]]
+                            :vertical-align    "middle" }]
+                [:#c {:display "table-cell"}]
+                [:.hidden {:display "none !important"}])]]
          [:body
           [:div#loading "Loading..."]
-          [:canvas#c]]
+          [:canvas#c.hidden]]
          (include-js "js/misdef.js")))

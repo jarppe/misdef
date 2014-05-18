@@ -1,5 +1,7 @@
 (ns misdef.misdef
-  (:require [misdef.game :as game]))
+  (:require [dommy.attrs :refer [add-class! remove-class!]]
+            [misdef.game.run :as g])
+  (:require-macros [dommy.macros :refer [sel1]]))
 
 (enable-console-print!)
 
@@ -11,24 +13,12 @@
 
 (defn run []
   (schedule run)
-  (game/step))
+  (g/step))
 
-(defn set-display [value id]
-  (-> js/document
-      (.getElementById id)
-      (.-style)
-      (.-display)
-      (set! value)))
+(defn game-ready []
+  (add-class! (sel1 :#loading) "hidden")
+  (remove-class! (sel1 :#c) "hidden")
+  (schedule run)
+  (println "Ready!"))
 
-(def hide (partial set-display "none"))
-(def show (partial set-display "table-cell"))
-
-(defn main []
-  (println "Here we go!")
-  (game/init (fn []
-               (hide "loading")
-               (show "c")
-               (schedule run)
-               (println "Ready!"))))
-
-(-> js/window .-onload (set! main))
+(-> js/window .-onload (set! (partial g/init game-ready)))
