@@ -2,7 +2,8 @@
   (:require [dommy.core :as dommy]
             [misdef.game :as game]
             [misdef.util :as util]
-            [misdef.game.missile :as missile])
+            [misdef.game.missile :as missile]
+            [misdef.game.explosion])
   (:require-macros [dommy.macros :refer [sel1]]))
 
 ;;
@@ -54,14 +55,14 @@
     (.save)
     (.translate (/ width 2) height)
     (.scale 1 -1))
-  (doto ctx
-    (aset "strokeStyle" "rgb(255,192,128)")
-    (.beginPath)
-    (.arc 0 0 100 0 Math/PI)
-    (.stroke)
-    (.beginPath)
-    (.arc 0 100 50 (/ Math/PI 4) (* 3 (/ Math/PI 4)))
-    (.stroke))
+  #_(doto ctx
+     (aset "strokeStyle" "rgb(255,192,128)")
+     (.beginPath)
+     (.arc 0 0 100 0 Math/PI)
+     (.stroke)
+     (.beginPath)
+     (.arc 0 100 50 (/ Math/PI 4) (* 3 (/ Math/PI 4)))
+     (.stroke))
   (doseq [o (->> objects vals (sort-by object-priority))]
     (.save ctx)
     (game/render-object g o)

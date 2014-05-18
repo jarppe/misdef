@@ -1,8 +1,14 @@
 (ns misdef.game.missile
   (:require [misdef.util :as util]
-            [misdef.game :as game]))
+            [misdef.game :as game]
+            [misdef.game.explosion :as explosion]))
 
 (enable-console-print!)
+
+(def missile-color {:friend "rgb(32,255,32)"
+                    :foe    "rgb(255,32,32)"})
+
+(def missile-velocity 0.2)
 
 (defn launch-defence-missile [e]
   (let [[width height]  (util/window-size)
@@ -16,17 +22,21 @@
                                                     :len          (Math/sqrt (+ (* x x) (* y y)))
                                                     :angle        (Math/atan2 y x)})))
 
-(def missile-color {:friend "rgb(32,255,32)"
-                    :foe    "rgb(255,32,32)"})
+(defn hit [g ts {:keys [id len angle affiliation]}]
+  (let [x (* len (Math/cos angle))
+        y (* len (Math/sin angle))
+        e (explosion/explosion x y affiliation ts)]
+    (-> g
+        (dissoc id)
+        (assoc (:id e) e))))
 
 (defmethod game/update-object :missile [{:keys [ts] :as g} {:keys [created len] :as o}]
   (let [age   (- ts created)
         dist  (* missile-velocity age)]
     (if (> dist len)
-      (update-in g [:objects] dissoc (:id o))
+      (update-in g [:objects] hit ts o)
       g)))
 
-(def missile-velocity 0.1)
 
 (defmethod game/render-object :missile [{:keys [ctx ts]} {:keys [created angle len affiliation]}]
   (let [age   (- ts created)
