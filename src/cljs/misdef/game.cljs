@@ -7,6 +7,14 @@
 (defonce game (atom nil))
 
 ;;
+;; Object ID:
+;;
+
+(let [id (atom 0)]
+  (defn next-object-id []
+    (swap! id inc)))
+
+;;
 ;; Game update:
 ;;
 

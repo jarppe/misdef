@@ -19,14 +19,12 @@
              :fps   fps)))
 
 (defn update-objects [{objects :objects :as g}]
-  (doseq [o objects]
-    (game/update-object g o)))
+  (reduce game/update-object g (vals objects)))
 
 (defn update [g]
   (-> g
       update-tick
-      update-objects)
-  g)
+      update-objects))
 
 ;;
 ;; Rendering:
@@ -48,17 +46,37 @@
     (aset "fillStyle" "rgba(32,255,32,0.4)")
     (.fillText (str "Missile Defence (" fps ")") (/ width 2) 2)))
 
-(defn render-objects [{objects :objects :as g}]
-  (doseq [o objects]
-    (game/render-object g o)))
+(defn object-priority [object]
+  0)
+
+(defn render-objects [{:keys [objects ctx width height] :as g}]
+  (doto ctx
+    (.save)
+    (.translate (/ width 2) height)
+    (.scale 1 -1))
+  (doto ctx
+    (aset "strokeStyle" "rgb(255,192,128)")
+    (.beginPath)
+    (.arc 0 0 100 0 Math/PI)
+    (.stroke)
+    (.beginPath)
+    (.arc 0 100 50 (/ Math/PI 4) (* 3 (/ Math/PI 4)))
+    (.stroke))
+  (doseq [o (->> objects vals (sort-by object-priority))]
+    (.save ctx)
+    (game/render-object g o)
+    (.restore ctx))
+  (.restore ctx))
 
 (defn render [{:keys [ctx] :as g}]
   (let [[width height] (util/window-size)]
+    (.save ctx)
     (doto (assoc g :width  width
                    :height height)
       (clean-canvas)
       (show-fps)
       (render-objects))
+    (.restore ctx)
     g))
 
 ;;
@@ -66,7 +84,7 @@
 ;;
 
 (defn keypress [e]
-  (swap! game/game assoc :objects []))
+  (swap! game/game assoc :objects {}))
 
 (defn step []
   (->> @game/game
@@ -81,7 +99,7 @@
                        :ctx      (.getContext canvas "2d")
                        :tick     0
                        :ts       (util/get-time)
-                       :objects  []})
+                       :objects  {}})
     (dommy/listen! canvas :click (comp missile/launch-defence-missile util/prevent-default))
     (dommy/listen! js/document :keypress (comp keypress util/prevent-default))
     (ready)))
