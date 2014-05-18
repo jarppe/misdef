@@ -1,7 +1,5 @@
 (ns misdef.misdef
-  (:require [figwheel.client :as fw :include-macros true]
-            [misdef.game :refer [game]]
-            [misdef.render :refer [step click keyb]]))
+  (:require [misdef.game :as game]))
 
 (enable-console-print!)
 
@@ -12,28 +10,25 @@
                   (fn [f] (.setTimeout js/window f 16))))
 
 (defn run []
-  (step)
-  (schedule run))
+  (schedule run)
+  (game/step))
 
-(defn set-display [id value]
+(defn set-display [value id]
   (-> js/document
       (.getElementById id)
       (.-style)
       (.-display)
       (set! value)))
 
+(def hide (partial set-display "none"))
+(def show (partial set-display "table-cell"))
+
 (defn main []
   (println "Here we go!")
-  (let [canvas (.getElementById js/document "c")]
-    (reset! game {:canvas canvas})
-    (.addEventListener canvas "click" click false)
-    (.addEventListener js/document "keypress" keyb false))
-  (set-display "loading" "none")
-  (set-display "c" "table-cell")
-  (schedule run)
-  (println "Ready!"))
+  (game/init (fn []
+               (hide "loading")
+               (show "c")
+               (schedule run)
+               (println "Ready!"))))
 
 (-> js/window .-onload (set! main))
-
-(fw/watch-and-reload
-  :jsload-callback (fn [] (print "reloaded")))
