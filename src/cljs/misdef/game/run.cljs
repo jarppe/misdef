@@ -1,7 +1,8 @@
 (ns misdef.game.run
   (:require [dommy.core :as dommy]
-            [misdef.core :as core]
-            [misdef.util :as util])
+            [misdef.game :as game]
+            [misdef.util :as util]
+            [misdef.game.missile :as missile])
   (:require-macros [dommy.macros :refer [sel1]]))
 
 ;;
@@ -18,12 +19,14 @@
              :fps   fps)))
 
 (defn update-objects [{objects :objects :as g}]
-  g)
+  (doseq [o objects]
+    (game/update-object g o)))
 
 (defn update [g]
   (-> g
       update-tick
-      update-objects))
+      update-objects)
+  g)
 
 ;;
 ;; Rendering:
@@ -45,18 +48,9 @@
     (aset "fillStyle" "rgba(32,255,32,0.4)")
     (.fillText (str "Missile Defence (" fps ")") (/ width 2) 2)))
 
-(defmethod core/render-object :missile [{ctx :ctx} {:keys [launch target]}]
-  (doto ctx
-    (aset "strokeStyle" "rgb(255,192,128)")
-    (.beginPath)
-    (.moveTo (:x launch) (:y launch))
-    (.lineTo (:x target) (:y target))
-    (.stroke)
-    (.closePath)))
-
 (defn render-objects [{objects :objects :as g}]
   (doseq [o objects]
-    (core/render-object g o)))
+    (game/render-object g o)))
 
 (defn render [{:keys [ctx] :as g}]
   (let [[width height] (util/window-size)]
@@ -71,33 +65,23 @@
 ;; Game life-cycle:
 ;;
 
-(defn click [e]
-  (let [x (.-clientX e)
-        y (.-clientY e)
-        [width height] (util/window-size)]
-    (swap! core/game update-in [:objects] conj {:type        :missile    
-                                                :created     (:ts @core/game)
-                                                :affiliation :friend
-                                                :launch      {:x (/ width 2) :y height}
-                                                :target      {:x x :y y}})))
-
 (defn keypress [e]
-  (swap! core/game assoc :objects []))
+  (swap! game/game assoc :objects []))
 
 (defn step []
-  (->> @core/game
+  (->> @game/game
        (update)
        (render)
-       (reset! core/game))
+       (reset! game/game))
   nil)
 
 (defn init [ready]
   (let [canvas (sel1 :#c)]
-    (reset! core/game {:canvas   canvas
+    (reset! game/game {:canvas   canvas
                        :ctx      (.getContext canvas "2d")
                        :tick     0
                        :ts       (util/get-time)
                        :objects  []})
-    (dommy/listen! canvas :click (comp click util/prevent-default))
+    (dommy/listen! canvas :click (comp missile/launch-defence-missile util/prevent-default))
     (dommy/listen! js/document :keypress (comp keypress util/prevent-default))
     (ready)))
