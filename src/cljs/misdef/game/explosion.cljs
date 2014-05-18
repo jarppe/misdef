@@ -8,7 +8,7 @@
                       :foe    [255 32 32]})
 
 (def explosion-velocity 0.05)
-(def explosion-age 1500)
+(def explosion-age 1000)
 (def explosion-glow 500)
 (def explosion-die (+ explosion-age explosion-glow))
 
