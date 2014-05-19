@@ -19,13 +19,12 @@
 ;;
 
 (defmulti update-object (fn [_ object] (:type object)))
-
-(defmethod update-object :default [_ _])
+(defmethod update-object :default [g _]
+  g)
 
 ;;
 ;; Rendering:
 ;;
 
 (defmulti render-object (fn [_ object] (:type object)))
-
 (defmethod render-object :default [_ _])
