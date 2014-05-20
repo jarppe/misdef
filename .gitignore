@@ -10,4 +10,4 @@ pom.xml.asc
 .project
 .settings
 .classpath
-resources/public/js
+/resources
