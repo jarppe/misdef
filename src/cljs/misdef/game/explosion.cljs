@@ -33,7 +33,6 @@
             (- 0.4 (* 0.4 (/ (- age explosion-age) explosion-glow))))]
     (if (pos? n) n 0)))
 
-(defn explosion-size [{:keys [ts creates]}])
 (defmethod game/render-object :explosion [{:keys [ctx ts]} {:keys [created x y affiliation]}]
   (let [age   (- ts created)
         r     (* explosion-velocity age)]
