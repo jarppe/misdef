@@ -27,4 +27,4 @@
          [:body
           [:div#loading "Loading..."]
           [:canvas#c.hidden]]
-         (include-js "js/misdef.js")))
+         (include-js "misdef.js")))

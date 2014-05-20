@@ -9,26 +9,25 @@
                  [ring/ring-devel "1.2.2"]
                  [compojure "1.1.6"]
                  [hiccup "1.0.5"]
-                 [garden "1.1.6"]
                  [metosin/ring-http-response "0.4.0"]
-                 [ring-middleware-format "0.3.2"]
-                 [prismatic/dommy "0.1.2"]]
+                 [garden "1.1.6" :scope "provided"]
+                 [prismatic/dommy "0.1.2" :scope "provided"]]
   :source-paths ["src/clj" "src/cljs"]
+  :hooks [leiningen.cljsbuild]
   :profiles {:dev {:dependencies [[midje "1.6.2"]]
-                   :plugins [[lein-cljsbuild "1.0.3"]]}
-             :prod {:source-paths ["src/clj" "src/cljs" "src/main"]
-                    :hooks [leiningen.cljsbuild]
-                    :cljsbuild {:builds {:client {:compiler {:optimizations :advanced
-                                                             :elide-asserts true
-                                                             :pretty-print false}}}}}}
+                   :plugins [[lein-cljsbuild "1.0.3"]]
+                   :cljsbuild {:builds {:client {:compiler {:notify-command ["growlnotify" "-n" "cljsbuild" "-m"]}}}}}
+             :uberjar {:source-paths ["src/clj" "src/main"]
+                       :main misdef.main
+                       :aot [misdef.main]
+                       :cljsbuild {:builds {:client {:compiler {:optimizations :advanced
+                                                                :elide-asserts true
+                                                                :pretty-print false}}}}}}
   :cljsbuild {:builds {:client {:source-paths ["src/cljs"]
-                                :compiler {:output-to "resources/public/js/misdef.js"
-                                           :output-dir "resources/public/js/out"
+                                :compiler {:output-to "resources/public/misdef.js"
+                                           :output-dir "target/js/out"
                                            :optimizations :whitespace
-                                           :pretty-print true
-                                           #_[:source-map "resources/public/js/misdef.js.map"]}
-                                :notify-command ["growlnotify" "-n" "cljsbuild" "-m"]}}}
+                                           :pretty-print true}}}}
   :repl-options {:init-ns misdef.server}
-  :main ^:skip-aot misdef.main
   :uberjar-name "misdef.jar"
   :min-lein-version "2.3.4")
