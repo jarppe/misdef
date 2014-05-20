@@ -1,1 +1,1 @@
-web: java $JVM_OPTS -cp target/misdef.jar $PORT
+web: java $JVM_OPTS -jar target/misdef.jar $PORT
