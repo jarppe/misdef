@@ -12,13 +12,14 @@
 (def explosion-glow 500)
 (def explosion-die (+ explosion-age explosion-glow))
 
-(defn explosion [x y affiliation ts]
-  {:id           (game/next-object-id)
-   :type         :explosion    
-   :affiliation  :friend
-   :created      ts
-   :x            x
-   :y            y})
+(defn explosion [g x y affiliation ts]
+  (let [id (game/next-object-id)]
+    (assoc-in g [:objects id] {:id           id
+                               :type         :explosion    
+                               :affiliation  affiliation
+                               :created      ts
+                               :x            x
+                               :y            y})))
 
 (defmethod game/update-object :explosion [{:keys [ts] :as g} {:keys [created x y] :as o}]
   (let [age (- ts created)]
@@ -32,6 +33,7 @@
             (- 0.4 (* 0.4 (/ (- age explosion-age) explosion-glow))))]
     (if (pos? n) n 0)))
 
+(defn explosion-size [{:keys [ts creates]}])
 (defmethod game/render-object :explosion [{:keys [ctx ts]} {:keys [created x y affiliation]}]
   (let [age   (- ts created)
         r     (* explosion-velocity age)]

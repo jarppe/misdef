@@ -1,50 +1,70 @@
 (ns misdef.game.missile
-  (:require [misdef.util :as util]
+  (:require [misdef.util :refer [random rgb->color] :as util]
             [misdef.game :as game]
             [misdef.game.explosion :as explosion]))
 
 (enable-console-print!)
 
-(def missile-color {:friend "rgb(32,255,32)"
-                    :foe    "rgb(255,32,32)"})
+(def missile-color {:friend (rgb->color 32 255 32)
+                    :foe    (rgb->color 255 32 32)})
 
-(def missile-velocity 0.2)
+(def missile-velocity {:friend 0.2
+                       :foe    0.1})
 
 (defn launch-defence-missile [e]
   (let [[width height]  (util/window-size)
         id  (game/next-object-id)
         x   (- (.-clientX e) (/ width 2))
         y   (- height (.-clientY e))]
-    (swap! game/game update-in [:objects] assoc id {:id           id
-                                                    :type         :missile    
-                                                    :created      (:ts @game/game)
-                                                    :affiliation  :friend
-                                                    :len          (Math/sqrt (+ (* x x) (* y y)))
-                                                    :angle        (Math/atan2 y x)})))
+    (swap! game/game assoc-in [:objects id] {:id           id
+                                             :type         :missile    
+                                             :created      (:ts @game/game)
+                                             :affiliation  :friend
+                                             :sx           0
+                                             :sy           0
+                                             :len          (Math/sqrt (+ (* x x) (* y y)))
+                                             :angle        (Math/atan2 y x)})))
 
-(defn hit [g ts {:keys [id len angle affiliation]}]
-  (let [x (* len (Math/cos angle))
-        y (* len (Math/sin angle))
-        e (explosion/explosion x y affiliation ts)]
+(defn launch-attack-missile [{:keys [width height ts] :as g}]
+  (let [id    (game/next-object-id)
+        w2    (/ width 2)
+        sx    (- (random width) w2)
+        tx    (- (random width) w2)
+        dx    (- sx tx)
+        adx   (Math/abs dx)
+        len   (Math/sqrt (+ (* adx adx) (* height height)))
+        angle (+ (Math/atan2 height dx) Math/PI)]
+    (assoc-in g [:objects id] {:id           id
+                               :type         :missile    
+                               :created      ts
+                               :affiliation  :foe
+                               :sx           sx
+                               :sy           height
+                               :len          len
+                               :angle        angle})))
+
+(defn hit [g ts {:keys [id len angle affiliation sx sy]}]
+  (let [x (+ sx (* len (Math/cos angle)))
+        y (+ sy (* len (Math/sin angle)))]
     (-> g
-        (dissoc id)
-        (assoc (:id e) e))))
+        (update-in [:objects] dissoc id)
+        (explosion/explosion x y affiliation ts))))
 
-(defmethod game/update-object :missile [{:keys [ts] :as g} {:keys [created len] :as o}]
+(defmethod game/update-object :missile [{:keys [ts] :as g} {:keys [created len affiliation] :as o}]
   (let [age   (- ts created)
-        dist  (* missile-velocity age)]
+        dist  (* (missile-velocity affiliation) age)]
     (if (> dist len)
-      (update-in g [:objects] hit ts o)
+      (hit g ts o)
       g)))
 
-(defmethod game/render-object :missile [{:keys [ctx ts]} {:keys [created angle len affiliation]}]
+(defmethod game/render-object :missile [{:keys [ctx ts]} {:keys [created angle len affiliation sx sy]}]
   (let [age   (- ts created)
-        dist  (* missile-velocity age)
-        x     (* dist (Math/cos angle))
-        y     (* dist (Math/sin angle))]
+        dist  (* (missile-velocity affiliation) age)
+        x     (+ sx (* dist (Math/cos angle)))
+        y     (+ sy (* dist (Math/sin angle)))]
     (doto ctx
       (aset "strokeStyle" (missile-color affiliation))
       (.beginPath)
-      (.moveTo 0 0)
+      (.moveTo sx sy)
       (.lineTo x y)
       (.stroke))))

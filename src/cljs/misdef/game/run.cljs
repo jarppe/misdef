@@ -3,12 +3,18 @@
             [misdef.game :as game]
             [misdef.util :as util]
             [misdef.game.missile :as missile]
-            [misdef.game.explosion])
+            [misdef.game.explosion]
+            [misdef.game.foe :as foe])
   (:require-macros [dommy.macros :refer [sel1]]))
 
 ;;
 ;; Game update:
 ;;
+
+(defn update-size [g]
+  (let [[width height] (util/window-size)]
+    (assoc g :width  width
+             :height height)))
 
 (defn update-tick [{:keys [tick ts fps] :as g}]
   (let [now     (util/get-time)
@@ -24,7 +30,9 @@
 
 (defn update [g]
   (-> g
+      update-size
       update-tick
+      foe/update
       update-objects))
 
 ;;
@@ -62,22 +70,23 @@
   (.restore ctx))
 
 (defn render [{:keys [ctx] :as g}]
-  (let [[width height] (util/window-size)]
-    (.save ctx)
-    (doto (assoc g :width  width
-                   :height height)
-      (clean-canvas)
-      (show-fps)
-      (render-objects))
-    (.restore ctx)
-    g))
+  (.save ctx)
+  (doto g
+    (clean-canvas)
+    (show-fps)
+    (render-objects))
+  (.restore ctx)
+  g)
 
 ;;
 ;; Game life-cycle:
 ;;
 
 (defn keypress [e]
-  (swap! game/game assoc :objects {}))
+  (condp = (.-keyCode e)
+    32   (println "Objects:" (:objects @game/game))
+    120  (swap! game/game assoc :objects {})
+    nil))
 
 (defn step []
   (->> @game/game

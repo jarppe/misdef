@@ -21,3 +21,9 @@
 
 (defn color-with-alpha [[r g b] a]
   (str "rgba(" r "," g "," b "," a ")"))
+
+(defn random
+  ([]
+    (.random js/Math))
+  ([n]
+    (* n (random))))
