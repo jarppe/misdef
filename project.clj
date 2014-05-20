@@ -16,7 +16,7 @@
   :hooks [leiningen.cljsbuild]
   :profiles {:dev {:dependencies [[midje "1.6.2"]]
                    :plugins [[lein-cljsbuild "1.0.3"]]
-                   :cljsbuild {:builds {:client {:compiler {:notify-command ["growlnotify" "-n" "cljsbuild" "-m"]}}}}}
+                   :cljsbuild {:builds {:client {:notify-command ["growlnotify" "-n" "cljsbuild" "-m"]}}}}
              :uberjar {:source-paths ["src/clj" "src/main"]
                        :main misdef.main
                        :aot [misdef.main]
