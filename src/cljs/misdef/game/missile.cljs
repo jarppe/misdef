@@ -43,7 +43,7 @@
                                :len          len
                                :angle        angle})))
 
-(defn hit [g ts {:keys [id len angle affiliation sx sy]}]
+(defn detonation [g ts {:keys [id len angle affiliation sx sy]}]
   (let [x (+ sx (* len (Math/cos angle)))
         y (+ sy (* len (Math/sin angle)))]
     (-> g
@@ -54,7 +54,7 @@
   (let [age   (- ts created)
         dist  (* (missile-velocity affiliation) age)]
     (if (> dist len)
-      (hit g ts o)
+      (detonation g ts o)
       g)))
 
 (defmethod game/render-object :missile [{:keys [ctx ts]} {:keys [created angle len affiliation sx sy]}]
