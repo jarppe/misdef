@@ -47,13 +47,15 @@
     (aset "fillStyle" "rgb(32,32,32)")
     (.fillRect 0 0 width height)))
 
-(defn show-fps [{:keys [ctx width fps]}]
+(defn show-score [{:keys [ctx width score]}]
   (doto ctx
     (aset "textAlign" "center")
     (aset "textBaseline" "top")
     (aset "font" "18px sans-serif")
     (aset "fillStyle" "rgba(32,255,32,0.4)")
-    (.fillText (str "Missile Defence (" fps ")") (/ width 2) 2)))
+    (.fillText "Missile Defence" (/ width 2) 2)
+    (aset "textAlign" "left")
+    (.fillText (str score) 2 2)))
 
 (defn object-priority [object]
   0)
@@ -73,7 +75,7 @@
   (.save ctx)
   (doto g
     (clean-canvas)
-    (show-fps)
+    (show-score)
     (render-objects))
   (.restore ctx)
   g)
@@ -101,7 +103,8 @@
                        :ctx      (.getContext canvas "2d")
                        :tick     0
                        :ts       (util/get-time)
-                       :objects  {}})
+                       :objects  {}
+                       :score    0})
     (dommy/listen! canvas :click (comp missile/launch-defence-missile util/prevent-default))
     (dommy/listen! js/document :keypress (comp keypress util/prevent-default))
     (ready)))

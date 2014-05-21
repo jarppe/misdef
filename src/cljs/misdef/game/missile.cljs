@@ -23,7 +23,9 @@
                                              :sx           0
                                              :sy           0
                                              :len          (Math/sqrt (+ (* x x) (* y y)))
-                                             :angle        (Math/atan2 y x)})))
+                                             :angle        (Math/atan2 y x)
+                                             :x            0
+                                             :y            0})))
 
 (defn launch-attack-missile [{:keys [width height ts] :as g}]
   (let [id    (game/next-object-id)
@@ -41,30 +43,34 @@
                                :sx           sx
                                :sy           height
                                :len          len
-                               :angle        angle})))
+                               :angle        angle
+                               :x            sx
+                               :y            height})))
 
-(defn hit [g ts {:keys [id len angle affiliation sx sy]}]
-  (let [x (+ sx (* len (Math/cos angle)))
-        y (+ sy (* len (Math/sin angle)))]
-    (-> g
-        (update-in [:objects] dissoc id)
-        (explosion/explosion x y affiliation ts))))
+(defn detonation [g ts {:keys [id len affiliation x y]}]
+  (-> g
+      (update-in [:objects] dissoc id)
+      (explosion/explosion x y affiliation ts)))
 
-(defmethod game/update-object :missile [{:keys [ts] :as g} {:keys [created len affiliation] :as o}]
-  (let [age   (- ts created)
-        dist  (* (missile-velocity affiliation) age)]
-    (if (> dist len)
-      (hit g ts o)
-      g)))
+(defn destroyed [{:keys [score] :as g} id]
+  (-> g
+      (update-in [:objects] dissoc id)
+      (assoc :score (+ score 1000))))
 
-(defmethod game/render-object :missile [{:keys [ctx ts]} {:keys [created angle len affiliation sx sy]}]
+(defmethod game/update-object :missile [{:keys [ts] :as g} {:keys [id created angle sx sy len affiliation] :as o}]
   (let [age   (- ts created)
         dist  (* (missile-velocity affiliation) age)
         x     (+ sx (* dist (Math/cos angle)))
         y     (+ sy (* dist (Math/sin angle)))]
-    (doto ctx
-      (aset "strokeStyle" (missile-color affiliation))
-      (.beginPath)
-      (.moveTo sx sy)
-      (.lineTo x y)
-      (.stroke))))
+    (cond
+      (> dist len) (detonation g ts o)
+      (and (= affiliation :foe) (explosion/inside-defence-explosion? g x y)) (destroyed g id)
+      :else (update-in g [:objects id] assoc :x x :y y))))
+
+(defmethod game/render-object :missile [{:keys [ctx]} {:keys [affiliation sx sy x y]}]
+  (doto ctx
+    (aset "strokeStyle" (missile-color affiliation))
+    (.beginPath)
+    (.moveTo sx sy)
+    (.lineTo x y)
+    (.stroke)))
