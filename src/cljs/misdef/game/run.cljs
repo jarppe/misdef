@@ -47,7 +47,7 @@
     (aset "fillStyle" "rgb(32,32,32)")
     (.fillRect 0 0 width height)))
 
-(defn show-score [{:keys [ctx width score]}]
+(defn show-score [{:keys [ctx fps width score]}]
   (doto ctx
     (aset "textAlign" "center")
     (aset "textBaseline" "top")
@@ -55,7 +55,9 @@
     (aset "fillStyle" "rgba(32,255,32,0.4)")
     (.fillText "Missile Defence" (/ width 2) 2)
     (aset "textAlign" "left")
-    (.fillText (str score) 2 2)))
+    (.fillText (str score) 2 2)
+    (aset "textAlign" "right")
+    (.fillText (str fps) width 2)))
 
 (defn object-priority [object]
   0)
