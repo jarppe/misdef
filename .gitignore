@@ -12,3 +12,5 @@ pom.xml.asc
 .classpath
 /resources
 /.env
+/.idea
+/misdef.iml
