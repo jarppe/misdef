@@ -8,7 +8,7 @@
 (def missile-color {:friend (rgb->color 32 255 32)
                     :foe    (rgb->color 255 32 32)})
 
-(def missile-velocity {:friend 0.2
+(def missile-velocity {:friend 0.5
                        :foe    0.1})
 
 (defn launch-defence-missile [e]
