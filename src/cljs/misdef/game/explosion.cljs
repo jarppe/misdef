@@ -7,6 +7,8 @@
 (def explosion-color {:friend [32 255 32]
                       :foe    [255 32 32]})
 
+(def explosion-score-color (util/rgb->color 0 255 0))
+
 (def explosion-velocity 0.05)
 (def explosion-age 1000)
 (def explosion-glow 500)
@@ -14,27 +16,27 @@
 
 (defn explosion [{:keys [score] :as g} x y affiliation ts]
   (let [id (game/next-object-id)]
-    (-> g
-        (assoc-in [:objects id] {:id           id
-                                :type         :explosion    
-                                :affiliation  affiliation
-                                :created      ts
-                                :x            x
-                                :y            y
-                                :age          0
-                                :r            0})
-        (assoc :score (- score 2000)))))
+    (assoc-in g [:objects id] {:id           id
+                               :type         :explosion    
+                               :affiliation  affiliation
+                               :score        0
+                               :created      ts
+                               :x            x
+                               :y            y
+                               :age          0
+                               :r            0})))
 
 (defn defence-explosion? [{:keys [type affiliation]}]
   (and (= type :explosion) (= affiliation :friend)))
 
-(defn inside? [px py {:keys [x y r]}]
+(defn inside? [px py {:keys [x y r] :as explosion}]
   (let [dx   (- px x)
         dy   (- py y)
         dist (Math/sqrt (+ (* dx dx) (* dy dy)))]
-    (< dist r)))
+    (if (< dist r)
+      explosion)))
 
-(defn inside-defence-explosion? [g x y]
+(defn find-defence-explosion [g x y]
   (some (partial inside? x y) (filter defence-explosion? (-> g :objects vals))))
 
 (defmethod game/update-object :explosion [{:keys [ts] :as g} {:keys [id created] :as o}]
@@ -50,11 +52,18 @@
             (- 0.4 (* 0.4 (/ (- age explosion-age) explosion-glow))))]
     (if (pos? n) n 0)))
 
-(defmethod game/render-object :explosion [{:keys [ctx ts]} {:keys [x y r age affiliation]}]
+(defmethod game/render-object :explosion [{:keys [ctx ts]} {:keys [x y r age affiliation score]}]
   (doto ctx
     (aset "strokeStyle" (apply util/rgb->color (explosion-color affiliation)))
     (aset "fillStyle" (util/color-with-alpha (explosion-color affiliation) (explosion-alpha age)))
     (.beginPath)
     (.arc x y r 0 util/pi2)
     (.fill)
-    (.stroke)))
+    (.stroke))
+  (if (and (= affiliation :friend) (not= score 0))
+    (doto ctx
+      (aset "fillStyle" explosion-score-color)
+      (aset "textAlign" "center")
+      (aset "textBaseline" "top")
+      (aset "font" "18px sans-serif")
+      (.fillText (str score) x y))))
