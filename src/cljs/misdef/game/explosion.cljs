@@ -1,7 +1,6 @@
 (ns misdef.game.explosion
-  (:require [misdef.util :as util]
-            [misdef.game :as game])
-  (:require-macros [misdef.util :refer [with-tx]]))
+  (:require [misdef.util :as util :refer-macros [with-tx]]
+            [misdef.game :as game]))
 
 (enable-console-print!)
 
