@@ -66,7 +66,7 @@
     (with-tx ctx
       (aset "fillStyle" explosion-score-color)
       (aset "textAlign" "center")
-      (aset "textBaseline" "top")
+      (aset "textBaseline" "middle")
       (aset "font" "18px sans-serif")
       (.translate x y)
       (.scale 1 -1)
