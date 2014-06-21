@@ -13,6 +13,7 @@
                  [garden "1.1.6" :scope "provided"]
                  [prismatic/dommy "0.1.2" :scope "provided"]]
   :source-paths ["src/clj" "src/cljs"]
+  :hooks [leiningen.cljsbuild]
   :profiles {:dev {:dependencies [[midje "1.6.2"]]
                    :plugins [[lein-cljsbuild "1.0.3"]]
                    :cljsbuild {:builds {:client {:notify-command ["growlnotify" "-n" "cljsbuild" "-m"]}}}}
