@@ -1,6 +1,7 @@
 (ns misdef.game.explosion
   (:require [misdef.util :as util]
-            [misdef.game :as game]))
+            [misdef.game :as game])
+  (:require-macros [misdef.util :refer [with-tx]]))
 
 (enable-console-print!)
 
@@ -20,6 +21,7 @@
                                :type         :explosion    
                                :affiliation  affiliation
                                :score        0
+                               :hits         0
                                :created      ts
                                :x            x
                                :y            y
@@ -61,9 +63,11 @@
     (.fill)
     (.stroke))
   (if (and (= affiliation :friend) (not= score 0))
-    (doto ctx
+    (with-tx ctx
       (aset "fillStyle" explosion-score-color)
       (aset "textAlign" "center")
       (aset "textBaseline" "top")
       (aset "font" "18px sans-serif")
-      (.fillText (str score) x y))))
+      (.translate x y)
+      (.scale 1 -1)
+      (.fillText (str score) 0 0))))
