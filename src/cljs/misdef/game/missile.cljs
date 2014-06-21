@@ -52,11 +52,14 @@
       (update-in [:objects] dissoc id)
       (explosion/explosion x y affiliation ts)))
 
-(defn destroyed [{:keys [score] :as g} id by-id]
-  (-> g
-      (update-in [:objects] dissoc id)
-      (update-in [:objects by-id :score] + 1000)
-      (assoc :score (+ score 1000))))
+(defn destroyed [{:keys [score] :as g} missile-id {:keys [id hits] :as by}]
+  (let [hits      (inc hits)
+        score-inc (* 1000 (* hits hits))]
+    (-> g
+        (update-in [:objects] dissoc missile-id)
+        (update-in [:objects id] assoc :hits hits
+                                       :score score-inc)
+        (assoc :score (+ score score-inc)))))
 
 (defmethod game/update-object :missile [{:keys [ts] :as g} {:keys [id created angle sx sy len affiliation] :as o}]
   (let [age   (- ts created)
@@ -66,7 +69,7 @@
     (if (> dist len)
       (detonation g ts o)
       (if-let [explosion (and (= affiliation :foe) (explosion/find-defence-explosion g x y))]
-        (destroyed g id (:id explosion))
+        (destroyed g id explosion)
         (update-in g [:objects id] assoc :x x :y y)))))
 
 (defmethod game/render-object :missile [{:keys [ctx]} {:keys [affiliation sx sy x y]}]
